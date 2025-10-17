@@ -16,16 +16,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
-  Typography,
   TablePagination,
+  Typography,
 } from "@mui/material";
-import SearchIcon from '@mui/icons-material/Search';
+import SearchIcon from "@mui/icons-material/Search";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InfoIcon from "@mui/icons-material/Info";
 import ReplayIcon from "@mui/icons-material/Replay";
 import { useNavigate } from "react-router-dom";
-
 
 const Task = () => {
   const navigate = useNavigate();
@@ -33,12 +31,14 @@ const Task = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [search, setSearch] = useState("");
+  const [selectedTasks, setSelectedTasks] = useState([]);
 
-  // Load tasks from localStorage 
+
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem("formData")) || [];
     setTasks(storedData);
   }, []);
+
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -79,18 +79,7 @@ const Task = () => {
     }
   };
 
-  const handleDelete = (index) => {
-    const updatedTasks = tasks.filter((ele, idx) => idx !== index);
-    setTasks(updatedTasks);
-    localStorage.setItem("formData", JSON.stringify(updatedTasks));
-  };
-
-  const handleChangePage = (event, newPage) => setPage(newPage);
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
+ 
   const [PriorityFilter, setPriorityFilter] = useState("");
   const [StatusFilter, setStatusFilter] = useState("");
   const [DateFilter, setDateFilter] = useState("");
@@ -102,28 +91,69 @@ const Task = () => {
     setSearch("");
   };
 
-  //filter for pr,st,date
   const Filter = tasks.filter((task) => {
     const matchPriority = PriorityFilter
       ? task.priority?.toLowerCase() === PriorityFilter.toLowerCase()
       : true;
-
     const matchStatus = StatusFilter
       ? task.status?.toLowerCase() === StatusFilter.toLowerCase()
       : true;
-
     const matchDate = DateFilter
       ? task.date === DateFilter || task.dueDate === DateFilter
       : true;
+    const matchSearch = search
+      ? task.title?.toLowerCase().includes(search.toLowerCase())
+      : true;
+    return matchPriority && matchStatus && matchDate && matchSearch;
+  },[tasks, PriorityFilter, StatusFilter, DateFilter, search]);
 
-    return matchPriority && matchStatus && matchDate;
-  });
 
-  function handleSearch() {
-    let currentTask = [];
-    currentTask = tasks.filter((task) => task.title === search);
-    setTasks(currentTask);
-  }
+  const handleSelectAll = (event) => {
+    if (event.target.checked) {
+      const allIndexes = Filter.map((_, index) => index + page * rowsPerPage);
+      setSelectedTasks(allIndexes);
+    } else {
+      setSelectedTasks([]);
+    }
+  };
+
+  const handleSelectOne = (index) => {
+    if (selectedTasks.includes(index)) {
+      setSelectedTasks(selectedTasks.filter((id) => id !== index));
+    } else {
+      setSelectedTasks([...selectedTasks, index]);
+    }
+  };
+
+  const isSelected = (index) => selectedTasks.includes(index);
+
+
+  const handleDelete = (index) => {
+    const updatedTasks = tasks.filter((_, idx) => idx !== index);
+    setTasks(updatedTasks);
+    localStorage.setItem("formData", JSON.stringify(updatedTasks));
+    setSelectedTasks([]);
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedTasks.length === 0) {
+      alert("Please select at least one task to delete!");
+      return;
+    }
+    const updatedTasks = tasks.filter(
+      (_, idx) => !selectedTasks.includes(idx)
+    );
+    setTasks(updatedTasks);
+    localStorage.setItem("formData", JSON.stringify(updatedTasks));
+    setSelectedTasks([]);
+  };
+
+
+  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   return (
     <Box sx={{ ml: 6, mr: 6 }}>
@@ -144,19 +174,18 @@ const Task = () => {
         </Typography>
 
         <div className="border-2 h-8 w-[250px] rounded-[14px] border-gray-300 bg-white flex items-center justify-between pl-2">
-          <IconButton onClick={handleSearch}> <SearchIcon /></IconButton>
+          <IconButton>
+            <SearchIcon />
+          </IconButton>
           <Input
-            className={" h-8 w-[210px]  outline-0 pr-2"}
+            className={"h-8 w-[210px] outline-0 pr-2"}
             placeholder="Search tasks"
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </Box>
 
-      {/* Filters Section */}
       <Stack
         direction="row"
         spacing={2}
@@ -174,9 +203,8 @@ const Task = () => {
           <Select
             value={PriorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            defaultValue=""
             label="Priority"
-            sx={{ backgroundColor: "#f3f4f6", height: 40, }}
+            sx={{ backgroundColor: "#f3f4f6", height: 40 }}
           >
             <MenuItem value="">All</MenuItem>
             <MenuItem value="Low">Low</MenuItem>
@@ -190,7 +218,6 @@ const Task = () => {
           <Select
             value={StatusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            defaultValue=""
             label="Status"
             sx={{ backgroundColor: "#f3f4f6", height: 40 }}
           >
@@ -204,13 +231,13 @@ const Task = () => {
         <input
           className="border-1 w-50 h-9 rounded-[10px] text-gray-500 bg-gray-200 p-3"
           type="date"
-          name="DueDate"
           value={DateFilter}
           onChange={(e) => setDateFilter(e.target.value)}
         />
         <IconButton onClick={ResetFilter}>
           <ReplayIcon />
         </IconButton>
+
         <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end" }}>
           <Button
             sx={{
@@ -222,6 +249,7 @@ const Task = () => {
               fontWeight: 500,
               "&:hover": { backgroundColor: "#fecaca" },
             }}
+            onClick={handleDeleteSelected}
           >
             Delete
           </Button>
@@ -241,7 +269,16 @@ const Task = () => {
           <TableHead sx={{ bgcolor: "#f3f4f6" }}>
             <TableRow>
               <TableCell>
-                <Checkbox />
+                <Checkbox
+                  checked={
+                    selectedTasks.length === Filter.length && Filter.length > 0
+                  }
+                  indeterminate={
+                    selectedTasks.length > 0 &&
+                    selectedTasks.length < Filter.length
+                  }
+                  onChange={handleSelectAll}
+                />
               </TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Task</TableCell>
               <TableCell sx={{ fontWeight: 600 }}>Due Date</TableCell>
@@ -256,83 +293,85 @@ const Task = () => {
           <TableBody>
             {Filter.length > 0 ? (
               Filter.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
-                (task, index) => (
-                  <TableRow key={index} hover>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
+                (task, index) => {
+                  const actualIndex = index + page * rowsPerPage;
+                  return (
+                    <TableRow key={actualIndex} hover>
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected(actualIndex)}
+                          onChange={() => handleSelectOne(actualIndex)}
+                        />
+                      </TableCell>
 
-                    <TableCell sx={{ fontWeight: 500, color: "#1f2937" }}>
-                      {task.title || "Untitled"}
-                    </TableCell>
+                      <TableCell sx={{ fontWeight: 500, color: "#1f2937" }}>
+                        {task.title || "Untitled"}
+                      </TableCell>
 
-                    <TableCell>{formatDate(task.dueDate)}</TableCell>
+                      <TableCell>{formatDate(task.dueDate)}</TableCell>
 
-                    <TableCell>
-                      <Box
-                        sx={{
-                          px: 2,
-                          py: 0.5,
-                          borderRadius: "9999px",
-                          display: "inline-block",
-                          fontSize: "0.875rem",
-                          ...getPriorityStyle(task.priority),
-                        }}
-                      >
-                        {task.priority || "No Priority"}
-                      </Box>
-                    </TableCell>
-
-                   
-                    <TableCell>
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-    
+                      <TableCell>
                         <Box
                           sx={{
-                            width: 96,
-                            height: 8,
-                            bgcolor: "#e5e7eb",
+                            px: 2,
+                            py: 0.5,
                             borderRadius: "9999px",
-                            mr: 1,
-                            overflow: "hidden",
+                            display: "inline-block",
+                            fontSize: "0.875rem",
+                            ...getPriorityStyle(task.priority),
                           }}
                         >
-                        
+                          {task.priority || "No Priority"}
+                        </Box>
+                      </TableCell>
+
+                      <TableCell>
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
                           <Box
                             sx={{
+                              width: 96,
                               height: 8,
-                              bgcolor:
-                                task.status?.toLowerCase() === "completed"
-                                  ? "#16a34a"
-                                  : task.status?.toLowerCase() === "near complition"
-                                  ? "#f59e0b"
-                                  : "#047857",
+                              bgcolor: "#e5e7eb",
                               borderRadius: "9999px",
-                              width: getProgressWidth(task.status),
-                              transition: "width 0.4s ease",
+                              mr: 1,
+                              overflow: "hidden",
                             }}
-                          />
+                          >
+                            <Box
+                              sx={{
+                                height: 8,
+                                bgcolor:
+                                  task.status?.toLowerCase() === "completed"
+                                    ? "#16a34a"
+                                    : task.status?.toLowerCase() === "near complition"
+                                    ? "#f59e0b"
+                                    : "#047857",
+                                borderRadius: "9999px",
+                                width: getProgressWidth(task.status),
+                                transition: "width 0.4s ease",
+                              }}
+                            />
+                          </Box>
+                          <Box sx={{ color: "#4b5563", fontSize: "0.875rem" }}>
+                            {task.status
+                              ? task.status.charAt(0).toUpperCase() +
+                                task.status.slice(1)
+                              : "Not Started"}
+                          </Box>
                         </Box>
+                      </TableCell>
 
-                        {/* Progress label */}
-                        <Box sx={{ color: "#4b5563", fontSize: "0.875rem" }}>
-                          {task.status
-                            ? task.status.charAt(0).toUpperCase() + task.status.slice(1)
-                            : "Not Started"}
-                        </Box>
-                      </Box>
-                    </TableCell>
-
-                    <TableCell align="right">
-                      <IconButton onClick={() => handleDelete(index)}>
-                        <DeleteIcon />
-                      </IconButton>
-                      <IconButton onClick={() => navigate(`/edit/${index}`)}>
-                        <InfoIcon sx={{ color: "#f59e0b" }} />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                )
+                      <TableCell align="right">
+                        <IconButton onClick={() => handleDelete(actualIndex)}>
+                          <DeleteIcon />
+                        </IconButton>
+                        <IconButton onClick={() => navigate(`/edit/${actualIndex}`)}>
+                          <InfoIcon sx={{ color: "#f59e0b" }} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
               )
             ) : (
               <TableRow>
