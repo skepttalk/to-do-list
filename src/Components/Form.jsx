@@ -14,51 +14,45 @@ const Form = () => {
     priority: "",
   });
 
-  const [savedData, setSavedData] = useState([]);
-  const [tableData, setTableData] = useState({});
-
+  // const [savedData, setSavedData] = useState([]);
+  // const [tableData, setTableData] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // eslint-disable-next-line no-debugger
-    debugger
-    let existingData = JSON.parse(localStorage.getItem("formData")) || [];
-    if (!Array.isArray(existingData)) existingData = [existingData];
 
-    const updatedData = [...existingData, formData];
-    localStorage.setItem("formData", JSON.stringify(updatedData));
-    setSavedData(updatedData);
+    try {
+      const res = await fetch("http://localhost:5050/todo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-    alert("Task added successfully!");
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message);
+      }
+      navigate("/all-tasks");
 
-    setFormData({
-      title: "",
-      description: "",
-      subtasks: "",
-      dueDate: "",
-      priority: "",
-    });
-  };
+      alert("Task added successfully!");
 
-
-  useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("formData")) || [];
-    setSavedData(data);
-  }, []);
-
-
-  useEffect(() => {
-    if (savedData.length > 0) {
-      const lastEntry = savedData[savedData.length - 1];
-      setTableData(lastEntry);
+      setFormData({
+        title: "",
+        description: "",
+        subtasks: "",
+        dueDate: "",
+        priority: "",
+      });
+    } catch (error) {
+      alert("internal errror");
     }
-  }, [savedData]);
+  };
 
   return (
     <>
@@ -137,15 +131,11 @@ const Form = () => {
 
           <div className="space-x-11 ml-169 text-blue-400">
             <button type="reset">CANCEL</button>
-            <button type="submit" onClick={() => {
-              navigate("/all-tasks  ");
-            }}> SAVE TASK</button>
+            <button type="submit"> SAVE TASK</button>
           </div>
         </div>
       </form>
-
     </>
   );
 };
-
 export default Form;

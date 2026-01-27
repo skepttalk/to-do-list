@@ -12,14 +12,22 @@ import { styled } from "@mui/material/styles";
 const Inbox = () => {
   const [tasks, setTasks] = useState([]);
 
-  // Fetch tasks from localStorage
-  useEffect(() => {
-    const storedTasks = JSON.parse(localStorage.getItem("formData")) || [];
-    setTasks(storedTasks);
-    console.log(storedTasks);
-  }, []);
 
-  // Styled progress bar
+useEffect(() => {
+  const fetchTasks = async () => {
+    try {
+      const res = await fetch("http://localhost:5050/todo");
+      const data = await res.json();
+      setTasks(data.Get || []);
+    } catch (err) {
+      console.error(err);
+      setTasks([]);
+    }
+  };
+  fetchTasks();
+}, []);
+
+
   const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
     height: 10,
     borderRadius: 5,
@@ -32,7 +40,6 @@ const Inbox = () => {
     },
   }));
 
-  // Stats
   const [selectedCard, setSelectedCard] = useState(0);
   const [total, setTotal] = useState(0);
   const [pending, setPending] = useState(0);
@@ -41,7 +48,6 @@ const Inbox = () => {
 
   const [filterDate, setFilterDate] = useState("DAILY");
 
-  // Filter and update task stats
   useEffect(() => {
     if (tasks.length === 0) {
       setTotal(0);
@@ -75,7 +81,6 @@ const Inbox = () => {
       });
     }
 
-    // Count tasks
     let totalCount = filteredTasks.length;
     let completedCount = 0;
     let pendingCount = 0;
@@ -93,21 +98,27 @@ const Inbox = () => {
     setOverdue(overdueCount);
   }, [filterDate, tasks]);
 
-  // Cards data
   const cards = [
     { id: 1, title: "Total Tasks", description: total },
-    { id: 2, title: "Completed vs Pending", description: `${completed}/${pending}` },
+    {
+      id: 2,
+      title: "Completed vs Pending",
+      description: `${completed}/${pending}`,
+    },
     { id: 3, title: "Overdue Tasks", description: overdue },
   ];
 
   return (
     <div className="m-3 p-4 flex flex-col justify-center w-full">
-      {/* Header */}
       <div className="flex flex-row justify-between m-8">
         <div>
           <Typography
             variant="h4"
-            sx={{ fontWeight: "bold", color: "#111827", letterSpacing: "-0.5px" }}
+            sx={{
+              fontWeight: "bold",
+              color: "#111827",
+              letterSpacing: "-0.5px",
+            }}
           >
             Inbox
           </Typography>
@@ -124,13 +135,11 @@ const Inbox = () => {
           </Typography>
         </div>
 
-        {/* Filter Buttons */}
         <div>
           <Button
             size="large"
             sx={{
-              backgroundColor:
-                filterDate === "DAILY" ? "#DCFCE7" : "#F3F4F6",
+              backgroundColor: filterDate === "DAILY" ? "#DCFCE7" : "#F3F4F6",
               color: filterDate === "DAILY" ? "green" : "gray",
               mr: 1,
             }}
@@ -141,8 +150,7 @@ const Inbox = () => {
           <Button
             size="large"
             sx={{
-              backgroundColor:
-                filterDate === "WEEKLY" ? "#DCFCE7" : "#F3F4F6",
+              backgroundColor: filterDate === "WEEKLY" ? "#DCFCE7" : "#F3F4F6",
               color: filterDate === "WEEKLY" ? "green" : "gray",
             }}
             onClick={() => setFilterDate("WEEKLY")}
@@ -152,7 +160,6 @@ const Inbox = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="flex flex-row m-3 space-x-6 items-center justify-between">
         {cards.map((card, index) => (
           <Card key={card.id} sx={{ borderRadius: "20px" }}>
@@ -168,8 +175,14 @@ const Inbox = () => {
                 },
               }}
             >
-              <CardContent sx={{ height: "170px", width: "300px", margin: "7px" }}>
-                <Typography variant="h5" component="div" sx={{ paddingRight: "20px" }}>
+              <CardContent
+                sx={{ height: "170px", width: "300px", margin: "7px" }}
+              >
+                <Typography
+                  variant="h5"
+                  component="div"
+                  sx={{ paddingRight: "20px" }}
+                >
                   {card.title}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -181,13 +194,10 @@ const Inbox = () => {
         ))}
       </div>
 
-      {/* Progress Bar */}
       <div className="w-full h-30 bg-[#F5F5F5] rounded-[20px] p-5 mt-3 space-y-2">
         <div className="flex justify-between">
           <h1 className="text-[27px]">Task Completed</h1>
-          <h1>
-            {total > 0 ? Math.round((completed / total) * 100) : 0}%
-          </h1>
+          <h1>{total > 0 ? Math.round((completed / total) * 100) : 0}%</h1>
         </div>
         <BorderLinearProgress
           variant="determinate"
@@ -195,7 +205,6 @@ const Inbox = () => {
         />
       </div>
 
-      {/* All Tasks */}
       <div className="flex flex-col mt-5 p-2 space-y-5">
         <h1>ALL TASKS ({filterDate})</h1>
         <div className="w-120 h-50 rounded-[20px] border-1 border-solid p-4">
