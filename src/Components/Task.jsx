@@ -24,28 +24,43 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import InfoIcon from "@mui/icons-material/Info";
 import ReplayIcon from "@mui/icons-material/Replay";
 import { useNavigate } from "react-router-dom";
+import { useDispatch,useSelector } from "react-redux";
+import { fetchtasks,deletetask } from "../features/tasks/taskslice";
 
 const Task = () => {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState([]);
+  // const [tasks, setTasks] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [search, setSearch] = useState("");
   const [selectedTasks, setSelectedTasks] = useState([]);
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const res = await fetch("http://localhost:5050/todo");
-        const data = await res.json();
-        setTasks(data.Get || []);
-      } catch (err) {
-        console.error(err);
-        setTasks([]);
-      }
-    };
-    fetchTasks();
-  }, []);
+  // useEffect(() => {
+  //   const fetchTasks = async () => {
+  //     try {
+  //       const res = await fetch("http://localhost:5050/todo");
+  //       const data = await res.json();
+  //       setTasks(data.Get || []);
+  //     } catch (err) {
+  //       console.error(err);
+  //       setTasks([]);
+  //     }
+  //   };
+  //   fetchTasks();
+  // }, []);
+
+
+const dispatch = useDispatch();
+const { list, loading } = useSelector((state) => state.task);
+
+useEffect(() => {
+  dispatch(fetchtasks());
+}, [dispatch]);
+
+const tasks = list;
+
+  
+
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -369,9 +384,9 @@ const Task = () => {
                     </TableCell>
 
                     <TableCell align="right">
-                      <IconButton onClick={() => handleDelete(actualIndex)}>
-                        <DeleteIcon />
-                      </IconButton>
+                      <IconButton onClick={() => dispatch(deletetask(actualIndex))}>
+  <DeleteIcon />
+</IconButton>
                       <IconButton
                         onClick={() => navigate(`/edit/${actualIndex}`)}
                       >

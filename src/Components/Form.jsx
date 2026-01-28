@@ -1,6 +1,8 @@
 import { useContext, useEffect, useState } from "react";
 import FormContext from "./FormCont";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchtasks,addtask,deletetask } from "../features/tasks/taskslice.js";
 
 const Form = () => {
   const navigate = useNavigate();
@@ -17,27 +19,25 @@ const Form = () => {
   // const [savedData, setSavedData] = useState([]);
   // const [tableData, setTableData] = useState({});
 
+
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
+
+  const dispatch  = useDispatch();
+  
+  useEffect(()=>{
+    dispatch(fetchtasks());
+  },[dispatch])
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const res = await fetch("http://localhost:5050/todo", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message);
-      }
+     dispatch(addtask(formData));
       navigate("/all-tasks");
 
       alert("Task added successfully!");
@@ -49,9 +49,6 @@ const Form = () => {
         dueDate: "",
         priority: "",
       });
-    } catch (error) {
-      alert("internal errror");
-    }
   };
 
   return (
