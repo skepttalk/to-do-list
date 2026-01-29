@@ -56,10 +56,7 @@ const { list, loading } = useSelector((state) => state.task);
 useEffect(() => {
   dispatch(fetchtasks());
 }, [dispatch]);
-
 const tasks = list;
-
-  
 
 
   const formatDate = (dateString) => {
