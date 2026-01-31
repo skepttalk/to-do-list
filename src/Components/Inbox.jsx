@@ -8,24 +8,34 @@ import LinearProgress, {
   linearProgressClasses,
 } from "@mui/material/LinearProgress";
 import { styled } from "@mui/material/styles";
+import { fetchtasks } from "../features/tasks/taskslice";
+import { useDispatch, useSelector } from "react-redux";
 
 const Inbox = () => {
-  const [tasks, setTasks] = useState([]);
 
+// useEffect(() => {
+//   const fetchTasks = async () => {
+//     try {
+//       const res = await fetch("http://localhost:5050/todo");
+//       const data = await res.json();
+//       setTasks(data.Get || []);
+//     } catch (err) {
+//       console.error(err);
+//       setTasks([]);
+//     }
+//   };
+//   fetchTasks();
+// }, []);
+
+const dispatch = useDispatch();
+const { list, loading } = useSelector((state) => state.task);
 
 useEffect(() => {
-  const fetchTasks = async () => {
-    try {
-      const res = await fetch("http://localhost:5050/todo");
-      const data = await res.json();
-      setTasks(data.Get || []);
-    } catch (err) {
-      console.error(err);
-      setTasks([]);
-    }
-  };
-  fetchTasks();
-}, []);
+  dispatch(fetchtasks());
+}, [dispatch]);
+
+const tasks = list;
+
 
 
   const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({

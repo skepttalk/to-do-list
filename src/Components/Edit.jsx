@@ -5,6 +5,8 @@ import { styled } from '@mui/material/styles'
 import Button from '@mui/material/Button'
 import { AlertDialog } from "@base-ui-components/react/alert-dialog"
 import FormContext from './FormCont'
+import { useDispatch, useSelector } from 'react-redux'
+import { updatetask } from '../features/tasks/taskslice'
 
 const Edit = () => {
   const { index } = useParams();
@@ -14,12 +16,17 @@ const Edit = () => {
   const [progressValue, setProgressValue] = useState(0);
   const [task, setTask] = useState({ title: "", description: "", dueDate: "", priority: "" });
 
+    const dispatch = useDispatch();
+
+  const { list } = useSelector((state) => state.task);
+
 
   useEffect(() => {
-    const allTasks = JSON.parse(localStorage.getItem("formData")) || [];
-    const currentTask = allTasks[index];
-    if (currentTask) setTask(currentTask);
-  }, [index]);
+    if (list.length > 0 && list[index]) {
+      setTask(list[index]);
+    }
+  }, [list, index]);
+
 
   function Progress(prg) {
     switch (prg.toLowerCase()) {
@@ -51,11 +58,13 @@ const Edit = () => {
 
 
   const handleEditSave = () => {
-    const storedTasks = JSON.parse(localStorage.getItem("formData")) || [];
-    storedTasks[index] = task; 
-    localStorage.setItem("formData", JSON.stringify(storedTasks));
-    setTasks(storedTasks);
-    navigate("/all-tasks"); 
+    dispatch(
+      updatetask({
+        id: index,
+        updatedTask: task,
+      })
+    );
+    navigate("/all-tasks");
   };
 
   return (

@@ -6,7 +6,7 @@ import { fetchtasks,addtask,deletetask } from "../features/tasks/taskslice.js";
 
 const Form = () => {
   const navigate = useNavigate();
-  const { theme, handleTheme } = useContext(FormContext);
+  const { handleTheme } = useContext(FormContext);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -57,7 +57,7 @@ const Form = () => {
         <button
           type="button"
           className="bg-emerald-500 text-2xl text-[20px] text-white m-2 rounded-[7px]"
-          onClick={handleTheme}
+            onClick={handleTheme}
         >
           Change Theme
         </button>
