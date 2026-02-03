@@ -243,7 +243,7 @@ const tasks = list;
               })
               .map((task, i) => (
                 <p key={i}>
-                  📝 {task.title || "Untitled"} —{" "}
+                  {task.title || "Untitled"} —{" "}
                   <span>{task.status || "Pending"}</span>
                 </p>
               ))
@@ -255,3 +255,9 @@ const tasks = list;
 };
 
 export default Inbox;
+
+
+
+
+
+
